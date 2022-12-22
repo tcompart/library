@@ -5,9 +5,15 @@ import de.tcompart.library.event.BookStockVisitor;
 import de.tcompart.library.store.BookState;
 import de.tcompart.library.store.ReadEventStore;
 import de.tcompart.library.store.WriteEventStore;
+import de.tcompart.library.web.Author;
 import de.tcompart.library.web.Book;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,12 +30,17 @@ public class BookController {
     this.writeEventStore = writeEventStore;
   }
 
-  @GetMapping("/books")
-  ResponseEntity<Collection<Book>> books(@RequestParam(value = "byAuthor", required = false) String... authors) {
+  @GetMapping(value = "/books", produces = "application/json;charset=UTF-8")
+  ResponseEntity<Collection<Book>> books(
+      @RequestParam(value = "byAuthor", required = false) String... authors) {
+    Collection<Book> value = toCollectionOfBooks();
     if (authors != null) {
-      return ResponseEntity.of(Optional.empty());
+      List<String> namesOfAuthors =
+          Stream.of(authors).map(name -> URLDecoder.decode(name, StandardCharsets.UTF_8))
+              .toList();
+      value = value.stream().filter(b -> b.authors().stream().map(Author::name).toList().containsAll(namesOfAuthors)).toList();
     }
-    return ResponseEntity.of(Optional.of(toCollectionOfBooks()));
+    return ResponseEntity.of(Optional.of(value));
   }
 
   private Collection<Book> toCollectionOfBooks() {
