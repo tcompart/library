@@ -22,10 +22,12 @@ public class InMemoryStore implements ReadEventStore, WriteEventStore {
     this.events = events;
   }
 
+  @Override
   public Collection<? extends Event> getAll() {
     return events.stream().sorted(Comparator.reverseOrder()).toList();
   }
 
+  @Override
   public Stream<? extends Event> filterBy(Predicate<? extends Event>... eventFilter) {
     return events.stream();
   }

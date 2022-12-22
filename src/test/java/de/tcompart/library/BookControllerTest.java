@@ -2,7 +2,9 @@ package de.tcompart.library;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -13,6 +15,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -52,9 +55,59 @@ class BookControllerTest {
     BookController bookController =
         new BookController(
             new InMemoryStore(List.of(createFamousBook())), new InMemoryStore(emptyList()));
+    when(bookController).perform(get("/books?byAuthor=Sally%20Rooney")).andExpect(status().isOk());
+  }
+
+  @Test
+  void addNewBookNeedsToBeValid() throws Exception {
+    InMemoryStore writeEventStore = new InMemoryStore();
+    BookController bookController = new BookController(new InMemoryStore(), writeEventStore);
     when(bookController)
-        .perform(get("/books?byAuthor=Sally%20Rooney"))
-        .andExpect(status().isNotFound());
+        .perform(post("/books").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType("application/json"))
+        .andExpect(content().json("{}"))
+        .andExpect(jsonPath("$.errors[0]").value("Invalid publication date. It is not allowed to be null. Please specify in the pattern of dd-MM-yyyy."))
+        .andExpect(jsonPath("$.errors[1]").value("No authors specified. Specify at least one."))
+        .andExpect(jsonPath("$.errors[2]").value("Invalid title. It is not allowed to be empty."))
+        .andExpect(jsonPath("$.errors[3]").value("Invalid list of authors. Specify at least one."))
+        .andDo(print());
+  }
+
+  @Test
+  void addNewBookButInvalidPublicationDate() throws Exception {
+    String bookRequest = """
+        {
+        "authors": ["Lena Magdalena"],
+        "title": "hallo",
+        "published": "20-324-2022"
+        }
+        """;
+
+    InMemoryStore writeEventStore = new InMemoryStore();
+    BookController bookController = new BookController(new InMemoryStore(), writeEventStore);
+    when(bookController)
+        .perform(post("/books").contentType(MediaType.APPLICATION_JSON).content(bookRequest))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errors[0]").value("Invalid date specified."));
+  }
+
+  @Test
+  void addNewBook() throws Exception {
+    String bookRequest = """
+        {
+        "authors": ["Anna-Maria"],
+        "title": "moin",
+        "published": "20-02-2022"
+        }
+        """;
+
+    InMemoryStore writeEventStore = new InMemoryStore();
+    BookController bookController = new BookController(new InMemoryStore(), writeEventStore);
+    when(bookController)
+        .perform(post("/books").contentType(MediaType.APPLICATION_JSON).content(bookRequest))
+        .andExpect(status().isOk());
+    assertThat(writeEventStore.getAll()).hasSize(1);
   }
 
   @Test
@@ -79,7 +132,8 @@ class BookControllerTest {
   }
 
   private MockMvc when(BookController bookController) {
-    return MockMvcBuilders.standaloneSetup(bookController).build();
+    return MockMvcBuilders.standaloneSetup(bookController)
+        .setControllerAdvice(new ValidationControllerAdvice()).build();
   }
 
   private BookCreatedEvent createFamousBook() {
