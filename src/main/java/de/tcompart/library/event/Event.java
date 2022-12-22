@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Event {
+public class Event implements Comparable<Event> {
 
   protected Instant created;
 
@@ -13,6 +13,12 @@ public class Event {
   public UUID getId() {
     return UUID.randomUUID();
   }
+
+  public Instant getCreated() {
+    return created;
+  }
+
+
 
   void accept(EventVisitor<? super Event> eventVisitor) {
     eventVisitor.visit(this);
@@ -41,5 +47,10 @@ public class Event {
   @Override
   public int hashCode() {
     return Objects.hash(created, name);
+  }
+
+  @Override
+  public int compareTo(Event o) {
+    return created.compareTo(o.created);
   }
 }

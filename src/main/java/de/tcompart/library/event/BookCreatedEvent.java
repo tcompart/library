@@ -24,10 +24,6 @@ public class BookCreatedEvent extends Event {
     return title;
   }
 
-  public Instant getCreated() {
-    return created;
-  }
-
   public Instant getPublished() {
     return published;
   }

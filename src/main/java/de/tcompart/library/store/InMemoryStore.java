@@ -3,6 +3,7 @@ package de.tcompart.library.store;
 import de.tcompart.library.event.Event;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -22,7 +23,7 @@ public class InMemoryStore implements ReadEventStore, WriteEventStore {
   }
 
   public Collection<? extends Event> getAll() {
-    return events;
+    return events.stream().sorted(Comparator.reverseOrder()).toList();
   }
 
   public Stream<? extends Event> filterBy(Predicate<? extends Event>... eventFilter) {
