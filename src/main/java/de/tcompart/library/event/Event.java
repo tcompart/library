@@ -14,7 +14,7 @@ public class Event {
     return UUID.randomUUID();
   }
 
-  void accept(EventVisitor eventVisitor) {
+  void accept(EventVisitor<? super Event> eventVisitor) {
     eventVisitor.visit(this);
   }
 

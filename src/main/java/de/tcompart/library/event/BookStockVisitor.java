@@ -5,13 +5,7 @@ import de.tcompart.library.web.Author;
 import de.tcompart.library.web.Book;
 import java.util.List;
 
-public class BookStockVisitor implements EventVisitor<BookCreatedEvent> {
-
-  private final BookState state;
-
-  public BookStockVisitor(BookState state) {
-    this.state = state;
-  }
+public record BookStockVisitor(BookState state) implements EventVisitor<BookCreatedEvent> {
 
   @Override
   public void visit(BookCreatedEvent event) {
