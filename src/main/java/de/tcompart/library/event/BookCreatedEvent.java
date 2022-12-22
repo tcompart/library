@@ -6,7 +6,6 @@ import java.util.List;
 public class BookCreatedEvent extends Event {
   private final List<String> authors;
   private final String title;
-  private final Instant created;
   private final Instant published;
 
   public BookCreatedEvent(List<String> authors, String title, Instant created, Instant published) {
