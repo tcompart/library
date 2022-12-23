@@ -3,6 +3,8 @@ package de.tcompart.library;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -66,11 +68,13 @@ class BookControllerTest {
         .perform(post("/books").contentType(MediaType.APPLICATION_JSON).content("{}"))
         .andExpect(status().isBadRequest())
         .andExpect(content().contentType("application/json"))
-        .andExpect(content().json("{}"))
-        .andExpect(jsonPath("$.errors[0]").value("Invalid publication date. It is not allowed to be null. Please specify in the pattern of dd-MM-yyyy."))
-        .andExpect(jsonPath("$.errors[1]").value("No authors specified. Specify at least one."))
-        .andExpect(jsonPath("$.errors[2]").value("Invalid title. It is not allowed to be empty."))
-        .andExpect(jsonPath("$.errors[3]").value("Invalid list of authors. Specify at least one."))
+        .andExpect(jsonPath("$.errors").exists())
+        .andExpect(jsonPath("$.errors").isArray())
+        .andExpect(jsonPath("$.errors", hasSize(4)))
+        .andExpect(jsonPath("$.errors", hasItem("Invalid list of authors. Specify at least one.")))
+        .andExpect(jsonPath("$.errors", hasItem("No authors specified. Specify at least one.")))
+        .andExpect(jsonPath("$.errors", hasItem("Invalid publication date. It is not allowed to be null. Please specify in the pattern of dd-MM-yyyy.")))
+        .andExpect(jsonPath("$.errors", hasItem("Invalid title. It is not allowed to be empty.")))
         .andDo(print());
   }
 
@@ -121,14 +125,13 @@ class BookControllerTest {
         .andExpect(content().contentType("application/json;charset=UTF-8"))
         .andExpect(content().json("[{}]"))
         .andExpect(jsonPath("$[0].authors[0].name").value("Sally Rooney"))
-        .andExpect(jsonPath("$[0].created").value("2018-08-28"))
-        .andExpect(jsonPath("$[0].published").value("2018-02-01"))
+        .andExpect(jsonPath("$[0].published").value("2018-08-28"))
         .andExpect(jsonPath("$[0].title").value("Normal People"))
         .andDo(print());
   }
 
   private BookCreatedEvent createEmptyBook() {
-    return new BookCreatedEvent(emptyList(), "", Instant.now(), Instant.now());
+    return new BookCreatedEvent(emptyList(), "", Instant.now());
   }
 
   private MockMvc when(BookController bookController) {
@@ -139,9 +142,7 @@ class BookControllerTest {
   private BookCreatedEvent createFamousBook() {
     Instant publishingDate =
         LocalDate.of(2018, 8, 28).atStartOfDay(ZoneId.systemDefault()).toInstant();
-    Instant creationDate =
-        LocalDate.of(2018, 2, 1).atStartOfDay(ZoneId.systemDefault()).toInstant();
     return new BookCreatedEvent(
-        List.of("Sally Rooney"), "Normal People", publishingDate, creationDate);
+        List.of("Sally Rooney"), "Normal People", publishingDate);
   }
 }

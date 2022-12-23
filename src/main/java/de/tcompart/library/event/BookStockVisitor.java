@@ -12,7 +12,7 @@ public record BookStockVisitor(BookState state) implements EventVisitor<BookCrea
   @Override
   public void visit(BookCreatedEvent event) {
     List<Author> authors = event.getAuthors().stream().map(Author::new).toList();
-    state.addBook(new Book(authors, event.getTitle(), LocalDate.ofInstant(event.created, ZoneId.systemDefault()).toString(), LocalDate.ofInstant(event.getPublished(), ZoneId.systemDefault()).toString()));
+    state.addBook(new Book(authors, event.getTitle(), LocalDate.ofInstant(event.getPublished(), ZoneId.systemDefault()).toString()));
     state.addEvent(event);
   }
 }

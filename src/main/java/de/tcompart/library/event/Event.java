@@ -1,9 +1,12 @@
 package de.tcompart.library.event;
 
 import java.time.Instant;
-import java.util.Objects;
 import java.util.UUID;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
+@ToString
+@EqualsAndHashCode
 public class Event implements Comparable<Event> {
 
   protected Instant created;
@@ -18,35 +21,8 @@ public class Event implements Comparable<Event> {
     return created;
   }
 
-
-
   void accept(EventVisitor<? super Event> eventVisitor) {
     eventVisitor.visit(this);
-  }
-
-  @Override
-  public String toString() {
-    return "Event{" +
-        "name=" + name +
-        ", created=" + created +
-        '}';
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    Event event = (Event) o;
-    return Objects.equals(created, event.created) && Objects.equals(name, event.name);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(created, name);
   }
 
   @Override

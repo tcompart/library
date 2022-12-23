@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,15 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(path = {"/books"})
+@AllArgsConstructor
 public class BookController {
 
   private final ReadEventStore eventStore;
   private final WriteEventStore writeEventStore;
-
-  public BookController(ReadEventStore eventStore, WriteEventStore writeEventStore) {
-    this.eventStore = eventStore;
-    this.writeEventStore = writeEventStore;
-  }
 
   @PostMapping
   ResponseEntity<Book> addBook(@RequestBody @Validated CreateBookRequest createBookRequest) {
